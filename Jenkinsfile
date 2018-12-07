@@ -16,6 +16,10 @@ pipeline {
         HELM_RELEASE = "$PREVIEW_NAMESPACE".toLowerCase()
       }
       steps {
+          sh "git config --global credential.helper store"
+           sh "jx step validate --min-jx-version 1.1.73"
+           sh "jx step git credentials"
+           sh 'jx step pre extend'        
         sh "mvn versions:set -DnewVersion=$PREVIEW_VERSION"
         sh "mvn install"
         sh "export VERSION=$PREVIEW_VERSION && skaffold build -f skaffold.yaml"
@@ -31,6 +35,7 @@ pipeline {
         branch 'master'
       }
       steps {
+           sh 'jx step pre extend'
         git 'https://github.com/kzantow-org/neat.git'
 
         // so we can retrieve the version in later steps
@@ -59,4 +64,9 @@ pipeline {
       }
     }
   }
+  post {
+                 always {
+                     sh 'jx step post run'
+                 }
+             }
 }
